@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^9.0.2",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^5.12.9",
+    "nodemon": "^2.0.20"
+  },
+  "name": "capstonebe",
+  "description": "",
+  "version": "1.0.0",
+  "main": "nodemon index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
