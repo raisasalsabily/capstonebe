@@ -13,25 +13,31 @@ const createLog = async (req, res) => {
   }
 }
 
-// GET ALL Log
+// GET latest log
 const findAllLog = async (req, res) => {
   try {
     let logs = {}
-    if (req.query.table === "true") {
-      logs = await Log.find().select({
-        _id: 1,
-        category: 1,
-        logs: 1,
-      })
+    logs = await Log.findOne().sort({ timerecord: -1 })
+    if (logs) {
+      res.status(200).json(logs)
     } else {
-      logs = await Log.find()
+      res.status(404).json({ error: "No log data available" })
     }
-
-    res.status(200).json(logs)
   } catch (err) {
     res.status(500).json(err)
   }
 }
+
+// // GET ALL Log
+// const findAllLog = async (req, res) => {
+//   try {
+//     let logs = {}
+//     logs = await Log.find().sort("-timerecord")
+//     res.status(200).json(logs)
+//   } catch (err) {
+//     res.status(500).json(err)
+//   }
+// }
 
 // GET Log BY ID
 const findLogById = async (req, res) => {

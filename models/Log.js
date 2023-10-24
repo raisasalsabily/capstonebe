@@ -11,27 +11,31 @@ const LogSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    waktuPakan: {
+    timerecord: {
       type: Date,
       required: true,
-      default: Date.now,
     },
-    waktuDisinfek: {
-      type: Date,
-      required: true,
-      default: Date.now,
-    },
-    // note: untuk Date.now masih dummy, selanjutnya harusnya diubah ke waktu pemberian sebenarnya
-    kipasStatus: {
-      type: Boolean,
-      required: true,
-    },
-    lampuStatus: {
-      type: Boolean,
-      required: true,
-    },
+    // waktuPakan: {
+    //   type: Date,
+    //   required: true,
+    //   default: Date.now,
+    // },
+    // waktuDisinfek: {
+    //   type: Date,
+    //   required: true,
+    //   default: Date.now,
+    // },
+    // // note: untuk Date.now masih dummy, selanjutnya harusnya diubah ke waktu pemberian sebenarnya
+    // kipasStatus: {
+    //   type: Boolean,
+    //   required: true,
+    // },
+    // lampuStatus: {
+    //   type: Boolean,
+    //   required: true,
+    // },
   },
-  { timestamps: true }
+  { timestamps: false }
 )
 
 module.exports = mongoose.model("Log", LogSchema)
