@@ -18,6 +18,7 @@ const findAllLog = async (req, res) => {
   try {
     let logs = {}
     logs = await Log.findOne().sort({ timerecord: -1 })
+
     if (logs) {
       res.status(200).json(logs)
     } else {

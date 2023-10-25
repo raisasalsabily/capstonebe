@@ -5,7 +5,7 @@ const mongoose = require("mongoose")
 
 const app = express()
 const server = http.createServer(app)
-const io = require("socket.io")(server, {
+const io = socketIo(server, {
   cors: {
     origin: "*",
   },
@@ -57,4 +57,7 @@ io.on("connection", (socket) => {
 // Start server
 server.listen(process.env.PORT, () => {
   console.log(`Backend is running on port ${process.env.PORT}`)
+  io.on("connection", function (socket) {
+    console.log("User connected: " + socket.id)
+  })
 })
