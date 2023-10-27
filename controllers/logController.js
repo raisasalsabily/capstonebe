@@ -14,7 +14,7 @@ const createLog = async (req, res) => {
 }
 
 // GET latest log
-const findAllLog = async (req, res) => {
+const findLatestLog = async (req, res) => {
   try {
     let logs = {}
     logs = await Log.findOne().sort({ timerecord: -1 })
@@ -52,6 +52,6 @@ const findLogById = async (req, res) => {
 
 module.exports = {
   createLog,
-  findAllLog,
+  findLatestLog,
   findLogById,
 }

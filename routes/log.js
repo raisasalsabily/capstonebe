@@ -2,12 +2,12 @@ const router = require("express").Router()
 
 const {
   createLog,
-  findAllLog,
+  findLatestLog,
   findLogById,
 } = require("../controllers/logController.js")
 
-// GET ALL Log
-router.get("/", findAllLog)
+// GET latest log
+router.get("/latest", findLatestLog)
 
 // GET BY ID
 router.get("/:id", findLogById)
