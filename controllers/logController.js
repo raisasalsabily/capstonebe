@@ -77,7 +77,7 @@ const createLog = () => {
 const findLatestLog = async (req, res) => {
   try {
     let logs = {}
-    logs = await Log.findOne().sort({ timerecord: -1 })
+    logs = await Log.findOne().sort({ createdAt: -1 })
 
     if (logs) {
       res.status(200).json(logs)
