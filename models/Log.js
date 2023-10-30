@@ -11,10 +11,6 @@ const LogSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    timerecord: {
-      type: Date,
-      required: true,
-    },
     // waktuPakan: {
     //   type: Date,
     //   required: true,
@@ -35,7 +31,7 @@ const LogSchema = new mongoose.Schema(
     //   required: true,
     // },
   },
-  { timestamps: false }
+  { timestamps: true }
 )
 
 module.exports = mongoose.model("Log", LogSchema)
