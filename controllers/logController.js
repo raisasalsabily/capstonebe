@@ -7,6 +7,12 @@ const port = "1883"
 
 const connectUrl = `mqtt://${host}:${port}`
 
+let io // Definisikan variabel io di sini
+// Fungsi untuk mengatur io
+function setSocketIO(socketIO) {
+  io = socketIO
+}
+
 // establish connection
 const client = mqtt.connect(connectUrl, {
   clean: true,
@@ -57,6 +63,11 @@ const createLog = () => {
     suhu: suhuData.value,
     kelembapan: kelembapanData.value,
   })
+
+  // emit ke socket.io-client (frontend)
+  if (io) {
+    io.emit("logs", newLog)
+  }
 
   newLog
     .save()
@@ -114,4 +125,5 @@ module.exports = {
   createLog,
   findLatestLog,
   findLogById,
+  setSocketIO,
 }

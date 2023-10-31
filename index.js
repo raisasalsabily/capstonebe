@@ -15,6 +15,8 @@ const dotenv = require("dotenv")
 const cors = require("cors")
 
 const logRoute = require("./routes/log")
+const logController = require("./controllers/logController")
+logController.setSocketIO(io) // Menginisialisasi io
 
 // initialize config
 dotenv.config({ path: ".env" })
