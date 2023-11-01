@@ -100,6 +100,22 @@ const findLatestLog = async (req, res) => {
   }
 }
 
+// get data for chart
+const getChartLog = async (req, res) => {
+  try {
+    const chartLogs = await Log.find(
+      {},
+      { _id: 0, suhu: 1, kelembapan: 1, createdAt: 1 }
+    )
+      .sort({ createdAt: -1 })
+      .limit(60)
+
+    res.json(chartLogs)
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve data" })
+  }
+}
+
 // // GET ALL Log
 // const findAllLog = async (req, res) => {
 //   try {
@@ -124,6 +140,7 @@ const findLogById = async (req, res) => {
 module.exports = {
   createLog,
   findLatestLog,
+  getChartLog,
   findLogById,
   setSocketIO,
 }
