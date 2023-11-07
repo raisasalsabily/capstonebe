@@ -1,4 +1,5 @@
 const mqtt = require("mqtt")
+const moment = require("moment-timezone")
 const Log = require("../models/Log")
 
 // establish mqtt connection
@@ -59,9 +60,16 @@ client.on("message", (topic, payload) => {
 
 // Create
 const createLog = () => {
+  const currentDatetime = new Date()
+  currentDatetime.setSeconds(0) // Bulatkan detik menjadi 00
+  currentDatetime.setMilliseconds(0)
+  // Menambahkan offset waktu UTC+7 secara manual (7 jam atau 7 * 60 menit)
+  currentDatetime.setMinutes(currentDatetime.getMinutes() + 7 * 60)
+
   const newLog = new Log({
     suhu: suhuData.value,
     kelembapan: kelembapanData.value,
+    createdAt: currentDatetime.toISOString(), // Tambahkan waktu pengambilan data
   })
 
   // emit ke socket.io-client (frontend)
@@ -100,7 +108,7 @@ const findLatestLog = async (req, res) => {
   }
 }
 
-// get data for chart
+// get data for chart - 1 last hour
 const getChartLog = async (req, res) => {
   try {
     const chartLogs = await Log.find(
@@ -113,6 +121,105 @@ const getChartLog = async (req, res) => {
     res.json(chartLogs)
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve data" })
+  }
+}
+
+// get data for chart - 24 last hour
+const getChartLog24 = async (req, res) => {
+  try {
+    const currentDate = new Date()
+    currentDate.setMinutes(0, 0, 0) // Mengatur menit dan detik ke 0 untuk mendapatkan jam bulat saat ini
+
+    const last24Hours = new Date(currentDate)
+    last24Hours.setHours(currentDate.getHours() - 24) // Menghitung waktu 24 jam yang lalu
+
+    const chartLogs = await Log.find(
+      {
+        createdAt: {
+          $gte: last24Hours,
+          $lt: currentDate,
+        },
+      },
+      { _id: 0, suhu: 1, kelembapan: 1, createdAt: 1 }
+    )
+      .sort({ createdAt: -1 }) // Mengurutkan berdasarkan createdAt secara descending untuk mendapatkan data terbaru
+      .limit(24) // Mengambil 24 data terbaru
+
+    res.json(chartLogs)
+  } catch (error) {
+    res.status(500).json({ error: "Gagal mengambil data" })
+  }
+}
+
+// suhu dan kelembapan tertinggi selama 24 jam terakhir
+const getHighest60 = async (req, res) => {
+  try {
+    // Hitung waktu 48 jam yang lalu dari saat ini
+    const time48HoursAgo = moment().subtract(48, "hours").toDate()
+
+    // Kueri untuk mendapatkan data suhu dalam 48 jam terakhir
+    const chartLogsSuhu = await Log.find(
+      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
+      { _id: 0, suhu: 1 }
+    )
+      .sort({ suhu: -1 }) // Mengurutkan data suhu dari yang tertinggi ke terendah
+      .exec()
+
+    // Temukan nilai suhu tertinggi dalam dokumen suhu
+    const highestTemperature =
+      chartLogsSuhu.length > 0 ? chartLogsSuhu[0].suhu : null
+
+    // Kueri untuk mendapatkan data kelembapan dalam 48 jam terakhir
+    const chartLogsKelembapan = await Log.find(
+      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
+      { _id: 0, kelembapan: 1 }
+    )
+      .sort({ kelembapan: -1 }) // Mengurutkan data kelembapan dari yang tertinggi ke terendah
+      .exec()
+
+    // Temukan nilai kelembapan tertinggi dalam dokumen kelembapan
+    const highestHumidity =
+      chartLogsKelembapan.length > 0 ? chartLogsKelembapan[0].kelembapan : null
+
+    res.json({ highestTemperature, highestHumidity })
+  } catch (error) {
+    res.status(500).json({ error: "Gagal mengambil data" })
+  }
+}
+
+// suhu dan kelembapan terendah selama 24 jam terakhir
+const getLowest60 = async (req, res) => {
+  try {
+    // Hitung waktu 48 jam yang lalu dari saat ini
+    const time48HoursAgo = moment().subtract(48, "hours").toDate()
+
+    // Kueri untuk mendapatkan data suhu dalam 48 jam terakhir
+    const chartLogsSuhu = await Log.find(
+      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
+      { _id: 0, suhu: 1 }
+    )
+      .sort({ suhu: 1 }) // Mengurutkan data suhu dari yang terendah ke tertinggi
+      .exec()
+
+    // Temukan nilai suhu terendah dalam dokumen suhu
+    const lowestTemperature =
+      chartLogsSuhu.length > 0 ? chartLogsSuhu[0].suhu : null
+
+    // Kueri untuk mendapatkan data kelembapan dalam 48 jam terakhir
+    const chartLogsKelembapan = await Log.find(
+      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
+      { _id: 0, kelembapan: 1 }
+    )
+      .sort({ kelembapan: 1 }) // Mengurutkan data kelembapan dari yang terendah ke tertinggi
+      .exec()
+
+    // Temukan nilai kelembapan terendah dalam dokumen kelembapan
+    const lowestHumidity =
+      chartLogsKelembapan.length > 0 ? chartLogsKelembapan[0].kelembapan : null
+
+    res.json({ lowestTemperature, lowestHumidity })
+  } catch (error) {
+    res.status(500).json({ error: "Gagal mengambil data" })
   }
 }
 
@@ -141,6 +248,9 @@ module.exports = {
   createLog,
   findLatestLog,
   getChartLog,
+  getChartLog24,
+  getHighest60,
+  getLowest60,
   findLogById,
   setSocketIO,
 }
