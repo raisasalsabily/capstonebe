@@ -8,11 +8,11 @@ const port = "1883"
 
 const connectUrl = `mqtt://${host}:${port}`
 
-let io // Definisikan variabel io di sini
+// let io // Definisikan variabel io di sini
 // Fungsi untuk mengatur io
-function setSocketIO(socketIO) {
-  io = socketIO
-}
+// function setSocketIO(socketIO) {
+//   io = socketIO
+// }
 
 // establish connection
 const client = mqtt.connect(connectUrl, {
@@ -73,9 +73,9 @@ const createLog = () => {
   })
 
   // emit ke socket.io-client (frontend)
-  if (io) {
-    io.emit("logs", newLog)
-  }
+  // if (io) {
+  //   io.emit("logs", newLog)
+  // }
 
   newLog
     .save()
@@ -155,7 +155,7 @@ const getChartLog24 = async (req, res) => {
 const getMinMax24 = async (req, res) => {
   try {
     // Hitung waktu 24 jam yang lalu dari saat ini
-    const time48HoursAgo = moment().subtract(24, "hours").toDate()
+    const time48HoursAgo = moment().subtract(96, "hours").toDate()
 
     // Kueri untuk mendapatkan data suhu dalam 48 jam terakhir
     const chartLogsSuhu = await Log.find(
@@ -232,5 +232,5 @@ module.exports = {
   getChartLog24,
   getMinMax24,
   findLogById,
-  setSocketIO,
+  // setSocketIO,
 }

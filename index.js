@@ -1,22 +1,20 @@
 const express = require("express")
 const http = require("http")
-const socketIo = require("socket.io")
+// const socketIo = require("socket.io")
 const mongoose = require("mongoose")
 
 const app = express()
 const server = http.createServer(app)
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-  },
-})
+// const io = socketIo(server, {
+//   cors: {
+//     origin: "*",
+//   },
+// })
 
 const dotenv = require("dotenv")
 const cors = require("cors")
 
 const logRoute = require("./routes/log")
-const logController = require("./controllers/logController")
-logController.setSocketIO(io) // Menginisialisasi io
 
 // initialize config
 dotenv.config({ path: ".env" })
@@ -52,14 +50,14 @@ app.use("/", (req, res) => {
 })
 
 // Socket.io
-io.on("connection", (socket) => {
-  console.log("socket.io user connected")
-})
+// io.on("connection", (socket) => {
+//   console.log("socket.io user connected")
+// })
 
 // Start server
 server.listen(process.env.PORT, () => {
   console.log(`Backend is running on port ${process.env.PORT}`)
-  io.on("connection", function (socket) {
-    console.log("User connected: " + socket.id)
-  })
+  // io.on("connection", function (socket) {
+  //   console.log("User connected: " + socket.id)
+  // })
 })
