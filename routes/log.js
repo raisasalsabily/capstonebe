@@ -6,8 +6,7 @@ const {
   findLogById,
   getChartLog,
   getChartLog24,
-  getHighest60,
-  getLowest60,
+  getMinMax24,
 } = require("../controllers/logController.js")
 
 // GET latest log
@@ -19,11 +18,8 @@ router.get("/chartlog", getChartLog)
 // get data for chart - 24 last hours
 router.get("/chartlog24", getChartLog24)
 
-// suhu dan kelembapan tertinggi selama 60 menit terakhir
-router.get("/highestlog60", getHighest60)
-
-// suhu dan kelembapan terendah selama 60 menit terakhir
-router.get("/lowestlog60", getLowest60)
+// suhu dan kelembapan tertinggi dan terendah selama 24 jam terakhir
+router.get("/minmaxlog24", getMinMax24)
 
 // GET BY ID
 router.get("/:id", findLogById)

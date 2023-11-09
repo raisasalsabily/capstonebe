@@ -151,73 +151,54 @@ const getChartLog24 = async (req, res) => {
   }
 }
 
-// suhu dan kelembapan tertinggi selama 24 jam terakhir
-const getHighest60 = async (req, res) => {
+// suhu dan kelembapan tertinggi dan terendah selama 24 jam terakhir
+const getMinMax24 = async (req, res) => {
   try {
-    // Hitung waktu 48 jam yang lalu dari saat ini
-    const time48HoursAgo = moment().subtract(48, "hours").toDate()
+    // Hitung waktu 24 jam yang lalu dari saat ini
+    const time48HoursAgo = moment().subtract(24, "hours").toDate()
 
     // Kueri untuk mendapatkan data suhu dalam 48 jam terakhir
     const chartLogsSuhu = await Log.find(
-      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
+      { createdAt: { $gte: time48HoursAgo } },
       { _id: 0, suhu: 1 }
     )
-      .sort({ suhu: -1 }) // Mengurutkan data suhu dari yang tertinggi ke terendah
-      .exec()
+      .sort({ suhu: -1 })
+      .exec() // Mengurutkan data suhu dari yang tertinggi ke terendah
+
+    // Kueri untuk mendapatkan data kelembapan dalam 48 jam terakhir
+    const chartLogsKelembapan = await Log.find(
+      { createdAt: { $gte: time48HoursAgo } },
+      { _id: 0, kelembapan: 1 }
+    )
+      .sort({ kelembapan: 1 })
+      .exec() // Mengurutkan data kelembapan dari yang terendah ke tertinggi
 
     // Temukan nilai suhu tertinggi dalam dokumen suhu
     const highestTemperature =
       chartLogsSuhu.length > 0 ? chartLogsSuhu[0].suhu : null
 
-    // Kueri untuk mendapatkan data kelembapan dalam 48 jam terakhir
-    const chartLogsKelembapan = await Log.find(
-      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
-      { _id: 0, kelembapan: 1 }
-    )
-      .sort({ kelembapan: -1 }) // Mengurutkan data kelembapan dari yang tertinggi ke terendah
-      .exec()
+    // Temukan nilai suhu terendah dalam dokumen suhu
+    const lowestTemperature =
+      chartLogsSuhu.length > 0
+        ? chartLogsSuhu[chartLogsSuhu.length - 1].suhu
+        : null
 
     // Temukan nilai kelembapan tertinggi dalam dokumen kelembapan
     const highestHumidity =
-      chartLogsKelembapan.length > 0 ? chartLogsKelembapan[0].kelembapan : null
-
-    res.json({ highestTemperature, highestHumidity })
-  } catch (error) {
-    res.status(500).json({ error: "Gagal mengambil data" })
-  }
-}
-
-// suhu dan kelembapan terendah selama 24 jam terakhir
-const getLowest60 = async (req, res) => {
-  try {
-    // Hitung waktu 48 jam yang lalu dari saat ini
-    const time48HoursAgo = moment().subtract(48, "hours").toDate()
-
-    // Kueri untuk mendapatkan data suhu dalam 48 jam terakhir
-    const chartLogsSuhu = await Log.find(
-      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
-      { _id: 0, suhu: 1 }
-    )
-      .sort({ suhu: 1 }) // Mengurutkan data suhu dari yang terendah ke tertinggi
-      .exec()
-
-    // Temukan nilai suhu terendah dalam dokumen suhu
-    const lowestTemperature =
-      chartLogsSuhu.length > 0 ? chartLogsSuhu[0].suhu : null
-
-    // Kueri untuk mendapatkan data kelembapan dalam 48 jam terakhir
-    const chartLogsKelembapan = await Log.find(
-      { createdAt: { $gte: time48HoursAgo } }, // Ambil data yang dibuat dalam 48 jam terakhir
-      { _id: 0, kelembapan: 1 }
-    )
-      .sort({ kelembapan: 1 }) // Mengurutkan data kelembapan dari yang terendah ke tertinggi
-      .exec()
+      chartLogsKelembapan.length > 0
+        ? chartLogsKelembapan[chartLogsKelembapan.length - 1].kelembapan
+        : null
 
     // Temukan nilai kelembapan terendah dalam dokumen kelembapan
     const lowestHumidity =
       chartLogsKelembapan.length > 0 ? chartLogsKelembapan[0].kelembapan : null
 
-    res.json({ lowestTemperature, lowestHumidity })
+    res.json({
+      highestTemperature,
+      lowestTemperature,
+      highestHumidity,
+      lowestHumidity,
+    })
   } catch (error) {
     res.status(500).json({ error: "Gagal mengambil data" })
   }
@@ -249,8 +230,7 @@ module.exports = {
   findLatestLog,
   getChartLog,
   getChartLog24,
-  getHighest60,
-  getLowest60,
+  getMinMax24,
   findLogById,
   setSocketIO,
 }
