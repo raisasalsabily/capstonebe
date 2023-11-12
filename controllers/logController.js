@@ -134,7 +134,7 @@ const getChartLog24 = async (req, res) => {
     currentDate.setMinutes(0, 0, 0) // Mengatur menit dan detik ke 0 untuk mendapatkan jam bulat saat ini
 
     const last24Hours = new Date(currentDate)
-    last24Hours.setHours(currentDate.getHours() + 24) // Menghitung waktu 24 jam yang lalu
+    last24Hours.setHours(currentDate.getHours() - 24) // Menghitung waktu 24 jam yang lalu
 
     const chartLogs = await Log.find(
       {
@@ -157,44 +157,30 @@ const getChartLog24 = async (req, res) => {
 // suhu dan kelembapan tertinggi dan terendah selama 24 jam terakhir
 const getMinMax24 = async (req, res) => {
   try {
-    // Hitung waktu 24 jam yang lalu dari saat ini
-    const time48HoursAgo = moment().subtract(96, "hours").toDate()
+    // Kueri untuk mendapatkan data suhu dan kelembapan tertinggi dan terendah dalam 48 jam terakhir
+    const result = await Log.aggregate([
+      {
+        $match: {
+          // Tidak ada batasan waktu
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          highestTemperature: { $max: "$suhu" },
+          lowestTemperature: { $min: "$suhu" },
+          highestHumidity: { $max: "$kelembapan" },
+          lowestHumidity: { $min: "$kelembapan" },
+        },
+      },
+    ])
 
-    // Kueri untuk mendapatkan data suhu dalam 48 jam terakhir
-    const chartLogsSuhu = await Log.find(
-      { createdAt: { $gte: time48HoursAgo } },
-      { _id: 0, suhu: 1 }
-    )
-      .sort({ suhu: -1 })
-      .exec() // Mengurutkan data suhu dari yang tertinggi ke terendah
-
-    // Kueri untuk mendapatkan data kelembapan dalam 48 jam terakhir
-    const chartLogsKelembapan = await Log.find(
-      { createdAt: { $gte: time48HoursAgo } },
-      { _id: 0, kelembapan: 1 }
-    )
-      .sort({ kelembapan: 1 })
-      .exec() // Mengurutkan data kelembapan dari yang terendah ke tertinggi
-
-    // Temukan nilai suhu tertinggi dalam dokumen suhu
-    const highestTemperature =
-      chartLogsSuhu.length > 0 ? chartLogsSuhu[0].suhu : null
-
-    // Temukan nilai suhu terendah dalam dokumen suhu
-    const lowestTemperature =
-      chartLogsSuhu.length > 0
-        ? chartLogsSuhu[chartLogsSuhu.length - 1].suhu
-        : null
-
-    // Temukan nilai kelembapan tertinggi dalam dokumen kelembapan
-    const highestHumidity =
-      chartLogsKelembapan.length > 0
-        ? chartLogsKelembapan[chartLogsKelembapan.length - 1].kelembapan
-        : null
-
-    // Temukan nilai kelembapan terendah dalam dokumen kelembapan
-    const lowestHumidity =
-      chartLogsKelembapan.length > 0 ? chartLogsKelembapan[0].kelembapan : null
+    const {
+      highestTemperature,
+      lowestTemperature,
+      highestHumidity,
+      lowestHumidity,
+    } = result[0] // Mengambil hasil dari agregasi
 
     res.json({
       highestTemperature,
