@@ -31,14 +31,20 @@ client.on("connect", () => {
 const topic = "esp32/capstoneb12501expo"
 const topic_suhu = "esp32/capstoneb12501expo/suhu"
 const topic_kelembapan = "esp32/capstoneb12501expo/kelembapan"
+const topic_waktu = "esp32/capstoneb12501expo/waktu"
+const topic_kipas = "esp32/capstoneb12501expo/kipas"
 
 client.on("connect", () => {
   client.subscribe(topic_suhu)
   client.subscribe(topic_kelembapan)
+  client.subscribe(topic_waktu)
+  client.subscribe(topic_kipas)
 })
 
 const suhuData = {} // Objek untuk menyimpan data suhu
 const kelembapanData = {} // Objek untuk menyimpan data kelembapan
+const waktuData = {} // Objek untuk menyimpan data kelembapan
+const kipasData = {} // Objek untuk menyimpan data kelembapan
 
 client.on("message", (topic, payload) => {
   const data = payload.toString()
@@ -46,13 +52,28 @@ client.on("message", (topic, payload) => {
   if (topic === topic_suhu) {
     // Ubah data suhu menjadi objek JSON
     suhuData.value = parseFloat(data)
+    console.log(suhuData)
   } else if (topic === topic_kelembapan) {
     // Ubah data kelembapan menjadi objek JSON
     kelembapanData.value = parseFloat(data)
+    console.log(kelembapanData)
+  } else if (topic === topic_waktu) {
+    // Ubah data waktu menjadi objek JSON
+    waktuData.value = data
+    console.log(waktuData)
+  } else if (topic === topic_kipas) {
+    // kipasData.value = data === "true" ? true : false
+    kipasData.value = data
+    console.log(kipasData)
   }
 
   // Jika kedua data suhu dan kelembapan sudah diterima, simpan ke MongoDB
-  if ("value" in suhuData && "value" in kelembapanData) {
+  if (
+    "value" in suhuData &&
+    "value" in kelembapanData &&
+    "value" in waktuData &&
+    "value" in kipasData
+  ) {
     // save to mongodb
     createLog()
   }
@@ -60,16 +81,17 @@ client.on("message", (topic, payload) => {
 
 // Create
 const createLog = () => {
-  const currentDatetime = new Date()
-  currentDatetime.setSeconds(0) // Bulatkan detik menjadi 00
-  currentDatetime.setMilliseconds(0)
+  // const currentDatetime = new Date()
+  kipasData.value.setSeconds(0) // Bulatkan detik menjadi 00
+  kipasData.value.setMilliseconds(0)
   // Menambahkan offset waktu UTC+7 secara manual (7 jam atau 7 * 60 menit)
-  currentDatetime.setMinutes(currentDatetime.getMinutes() + 7 * 60)
+  // currentDatetime.setMinutes(currentDatetime.getMinutes() + 7 * 60)
 
   const newLog = new Log({
     suhu: suhuData.value,
     kelembapan: kelembapanData.value,
-    createdAt: currentDatetime.toISOString(), // Tambahkan waktu pengambilan data
+    createdAt: waktuData.value,
+    kipasStatus: kipasData.value,
   })
 
   // emit ke socket.io-client (frontend)
@@ -84,6 +106,7 @@ const createLog = () => {
       // Reset data suhu dan kelembapan
       suhuData.value = undefined
       kelembapanData.value = undefined
+      waktuData.value = undefined
     })
     .catch((error) => {
       // console.error(
