@@ -23,9 +23,9 @@ const client = mqtt.connect(connectUrl, {
   reconnectPeriod: 2000,
 })
 
-client.on("connect", () => {
-  console.log("Connected to MQTT Broker")
-})
+// client.on("connect", () => {
+//   console.log("Connected to MQTT Broker")
+// })
 
 // subscribe to mqtt topic
 const topic = "esp32/capstoneb12501expo"
@@ -35,6 +35,8 @@ const topic_waktu = "esp32/capstoneb12501expo/waktu"
 const topic_kipas = "esp32/capstoneb12501expo/kipas"
 
 client.on("connect", () => {
+  console.log("Connected to MQTT Broker")
+
   client.subscribe(topic_suhu)
   client.subscribe(topic_kelembapan)
   client.subscribe(topic_waktu)
@@ -80,38 +82,41 @@ client.on("message", (topic, payload) => {
 })
 
 // Create
-const createLog = () => {
-  // const currentDatetime = new Date()
-  kipasData.value.setSeconds(0) // Bulatkan detik menjadi 00
-  kipasData.value.setMilliseconds(0)
-  // Menambahkan offset waktu UTC+7 secara manual (7 jam atau 7 * 60 menit)
-  // currentDatetime.setMinutes(currentDatetime.getMinutes() + 7 * 60)
+const createLog = async () => {
+  Log.findOne()
+    .sort({ createdAt: -1 })
+    .exec((err, latestLog) => {
+      if (err) {
+        console.error("Gagal mencari data log terbaru:", err)
+        return
+      }
 
-  const newLog = new Log({
-    suhu: suhuData.value,
-    kelembapan: kelembapanData.value,
-    createdAt: waktuData.value,
-    kipasStatus: kipasData.value,
-  })
+      if (latestLog) {
+        const newLog = new Log({
+          suhu: suhuData.value,
+          kelembapan: kelembapanData.value,
+          kipasStatus: kipasData.value,
+          sisaPakan: latestLog.sisaPakan, // Gunakan nilai sisaPakan dari dokumen terbaru
+          createdAt: waktuData.value,
+        })
 
-  // emit ke socket.io-client (frontend)
-  // if (io) {
-  //   io.emit("logs", newLog)
-  // }
-
-  newLog
-    .save()
-    .then((savedLog) => {
-      // console.log("Data suhu dan kelembapan berhasil disimpan di MongoDB")
-      // Reset data suhu dan kelembapan
-      suhuData.value = undefined
-      kelembapanData.value = undefined
-      waktuData.value = undefined
-    })
-    .catch((error) => {
-      // console.error(
-      //   `Gagal menyimpan data suhu dan kelembapan ke MongoDB: ${error}`
-      // )
+        newLog
+          .save()
+          .then((savedLog) => {
+            console.log("Data suhu dan kelembapan berhasil disimpan di MongoDB")
+            // Reset data suhu dan kelembapan
+            suhuData.value = undefined
+            kelembapanData.value = undefined
+            waktuData.value = undefined
+          })
+          .catch((error) => {
+            console.error(
+              `Gagal menyimpan data suhu dan kelembapan ke MongoDB: ${error}`
+            )
+          })
+      } else {
+        console.log("Tidak ada data log yang tersedia untuk nilai sisaPakan")
+      }
     })
 }
 
@@ -128,6 +133,43 @@ const findLatestLog = async (req, res) => {
     }
   } catch (err) {
     res.status(500).json(err)
+  }
+}
+
+// mengurangi sisa pakan tiap "durasiSisaPakan"
+const volPakanPenuh = 10000000
+const volSekaliKeluar = 2
+const durasiSisaPakan = volPakanPenuh / volSekaliKeluar
+
+setInterval(async () => {
+  try {
+    const log = await Log.findOne().sort({ createdAt: -1 })
+    if (log && log.sisaPakan > 0) {
+      log.sisaPakan -= 1
+      await log.save()
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}, 10000)
+
+const updateSisaPakan = async (req, res) => {
+  try {
+    const { sisaPakan } = req.body // Ambil nilai sisaPakan dari body request
+    // Buat atau perbarui data log terakhir dengan nilai sisaPakan yang diterima
+    const latestLog = await Log.findOne().sort({ createdAt: -1 })
+    if (latestLog) {
+      latestLog.sisaPakan = sisaPakan
+      await latestLog.save()
+      res.status(200).json({ message: "Nilai sisaPakan berhasil diperbarui" })
+    } else {
+      res.status(404).json({ error: "Tidak ada data log yang tersedia" })
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: "Gagal memperbarui nilai sisaPakan",
+      message: error.message,
+    })
   }
 }
 
@@ -251,6 +293,29 @@ const findLogById = async (req, res) => {
   }
 }
 
+// get sisa pakan
+const getSisaPakan = async (req, res) => {
+  try {
+    const log = await Log.findOne()
+    res.json({ sisaPakan: log.sisaPakan })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+// Logic untuk mengurangi nilai sisaPakan setiap 5 detik
+// setInterval(async () => {
+//   try {
+//     const log = await Log.findOne()
+//     if (log.sisaPakan > 0) {
+//       log.sisaPakan -= 1
+//       await log.save()
+//     }
+//   } catch (err) {
+//     console.error(err)
+//   }
+// }, 5000)
+
 module.exports = {
   createLog,
   findLatestLog,
@@ -258,5 +323,7 @@ module.exports = {
   getChartLog24,
   getMinMax24,
   findLogById,
+  updateSisaPakan,
+  // getSisaPakan,
   // setSocketIO,
 }

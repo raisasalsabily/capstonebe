@@ -11,11 +11,11 @@ const LogSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    // waktuPakan: {
-    //   type: Date,
-    //   required: true,
-    //   default: Date.now,
-    // },
+    sisaPakan: {
+      type: Number,
+      required: true,
+      // default: 7,
+    },
     // waktuDisinfek: {
     //   type: Date,
     //   required: true,
