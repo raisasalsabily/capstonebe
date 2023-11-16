@@ -147,7 +147,7 @@ setInterval(async () => {
   } catch (err) {
     console.error(err)
   }
-}, 10000)
+}, 12 * 60 * 60 * 1000)
 
 const updateSisaPakan = async (req, res) => {
   try {
