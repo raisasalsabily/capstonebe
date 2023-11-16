@@ -26,6 +26,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(
   cors({
     origin: "https://kandangkoo.vercel.app", // Ganti dengan domain Anda
+    // origin: "http://localhost:3000", // Ganti dengan domain Anda
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
     optionsSuccessStatus: 204,

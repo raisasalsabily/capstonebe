@@ -22,10 +22,10 @@ const LogSchema = new mongoose.Schema(
     //   default: Date.now,
     // },
     // // note: untuk Date.now masih dummy, selanjutnya harusnya diubah ke waktu pemberian sebenarnya
-    kipasStatus: {
-      type: String,
-      required: true,
-    },
+    // kipasStatus: {
+    //   type: String,
+    //   required: true,
+    // },
     // lampuStatus: {
     //   type: Boolean,
     //   required: true,

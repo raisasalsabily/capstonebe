@@ -32,7 +32,7 @@ const topic = "esp32/capstoneb12501expo"
 const topic_suhu = "esp32/capstoneb12501expo/suhu"
 const topic_kelembapan = "esp32/capstoneb12501expo/kelembapan"
 const topic_waktu = "esp32/capstoneb12501expo/waktu"
-const topic_kipas = "esp32/capstoneb12501expo/kipas"
+// const topic_kipas = "esp32/capstoneb12501expo/kipas"
 
 client.on("connect", () => {
   console.log("Connected to MQTT Broker")
@@ -40,44 +40,39 @@ client.on("connect", () => {
   client.subscribe(topic_suhu)
   client.subscribe(topic_kelembapan)
   client.subscribe(topic_waktu)
-  client.subscribe(topic_kipas)
+  // client.subscribe(topic_kipas)
 })
 
 const suhuData = {} // Objek untuk menyimpan data suhu
 const kelembapanData = {} // Objek untuk menyimpan data kelembapan
 const waktuData = {} // Objek untuk menyimpan data kelembapan
-const kipasData = {} // Objek untuk menyimpan data kelembapan
+// const kipasData = {} // Objek untuk menyimpan data kelembapan
 
 client.on("message", (topic, payload) => {
   const data = payload.toString()
 
-  if (topic === topic_suhu) {
-    // Ubah data suhu menjadi objek JSON
-    suhuData.value = parseFloat(data)
-    console.log(suhuData)
-  } else if (topic === topic_kelembapan) {
-    // Ubah data kelembapan menjadi objek JSON
-    kelembapanData.value = parseFloat(data)
-    console.log(kelembapanData)
-  } else if (topic === topic_waktu) {
-    // Ubah data waktu menjadi objek JSON
-    waktuData.value = data
-    console.log(waktuData)
-  } else if (topic === topic_kipas) {
-    // kipasData.value = data === "true" ? true : false
-    kipasData.value = data
-    console.log(kipasData)
-  }
+  try {
+    if (topic === topic_suhu) {
+      suhuData.value = parseFloat(data)
+      console.log(suhuData)
+    } else if (topic === topic_kelembapan) {
+      kelembapanData.value = parseFloat(data)
+      console.log(kelembapanData)
+    } else if (topic === topic_waktu) {
+      waktuData.value = data
+      console.log(waktuData)
+    }
 
-  // Jika kedua data suhu dan kelembapan sudah diterima, simpan ke MongoDB
-  if (
-    "value" in suhuData &&
-    "value" in kelembapanData &&
-    "value" in waktuData &&
-    "value" in kipasData
-  ) {
-    // save to mongodb
-    createLog()
+    if (
+      suhuData.value !== undefined &&
+      kelembapanData.value !== undefined &&
+      waktuData.value !== undefined
+    ) {
+      createLog()
+    }
+  } catch (error) {
+    console.error("Error handling MQTT message:", error)
+    // Lakukan tindakan lain sesuai kebutuhan, seperti logging atau memberikan respons kepada pengirim pesan MQTT
   }
 })
 
@@ -95,8 +90,9 @@ const createLog = async () => {
         const newLog = new Log({
           suhu: suhuData.value,
           kelembapan: kelembapanData.value,
-          kipasStatus: kipasData.value,
+          // kipasStatus: kipasData.value,
           sisaPakan: latestLog.sisaPakan, // Gunakan nilai sisaPakan dari dokumen terbaru
+          // sisaPakan: latestLog.sisaPakan, // Gunakan nilai sisaPakan dari dokumen terbaru
           createdAt: waktuData.value,
         })
 
