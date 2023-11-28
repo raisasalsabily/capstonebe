@@ -177,7 +177,7 @@ const getChartLog = async (req, res) => {
       { _id: 0, suhu: 1, kelembapan: 1, createdAt: 1 }
     )
       .sort({ createdAt: -1 })
-      .limit(60)
+      .limit(46)
 
     // Membalik urutan data
     const reversedChartLogs = chartLogs.reverse()
