@@ -195,7 +195,7 @@ const getChartLog24 = async (req, res) => {
     currentDate.setMinutes(0, 0, 0) // Mengatur menit dan detik ke 0 untuk mendapatkan jam bulat saat ini
 
     const last24Hours = new Date(currentDate)
-    last24Hours.setHours(currentDate.getHours() - 96) // Menghitung waktu 24 jam yang lalu
+    last24Hours.setHours(currentDate.getHours() - 24) // Menghitung waktu 24 jam yang lalu
 
     const chartLogs = await Log.find(
       {
@@ -219,7 +219,7 @@ const getChartLog24 = async (req, res) => {
 const getMinMax24 = async (req, res) => {
   try {
     // Hitung waktu 24 jam yang lalu dari saat ini
-    const time24HoursAgo = moment().subtract(24, "hours").toDate()
+    const time24HoursAgo = moment().subtract(48, "hours").toDate()
 
     // Kueri untuk mendapatkan data suhu dalam 24 jam terakhir
     const chartLogsSuhu = await Log.find(
