@@ -195,7 +195,7 @@ const getChartLog24 = async (req, res) => {
     currentDate.setMinutes(0, 0, 0) // Mengatur menit dan detik ke 0 untuk mendapatkan jam bulat saat ini
 
     const last24Hours = new Date(currentDate)
-    last24Hours.setHours(currentDate.getHours() - 48) // Menghitung waktu 24 jam yang lalu
+    last24Hours.setHours(currentDate.getHours() - 96) // Menghitung waktu 24 jam yang lalu
 
     const chartLogs = await Log.find(
       {
